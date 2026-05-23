@@ -72,6 +72,15 @@ const UI = {
       hint.style.cssText = 'margin-top:20px;text-align:center;';
       hint.innerHTML = `<button class="btn btn-outline" onclick="App.showHistory()">📋 查看历史结果 (${historyKeys.length})</button>`;
       historyEl.appendChild(hint);
+
+      // 四个模块全完成时显示报告生成按钮
+      const allDone = ['ecr','stls','las','ll'].every(k => results[k] && results[k].timestamp);
+      if (allDone) {
+        const reportDiv = document.createElement('div');
+        reportDiv.style.cssText = 'margin-top:12px;text-align:center;';
+        reportDiv.innerHTML = `<button class="btn btn-primary" onclick="App.openReport()">📊 生成个人分析报告</button>`;
+        historyEl.appendChild(reportDiv);
+      }
     }
   },
 

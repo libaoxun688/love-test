@@ -571,3 +571,229 @@ html { background: var(--bg); }
 .info-banner strong {
   color: #333;
 }
+
+/* ===== 综合报告页样式 ===== */
+.report-content {
+  padding-bottom: 20px;
+}
+
+.report-section {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+
+.report-section-header {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  letter-spacing: -0.3px;
+}
+
+.section-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--text);
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+/* Hero */
+.report-hero {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #FAFAFA 0%, #F0ECF5 100%);
+}
+.report-hero-badge {
+  display: inline-block;
+  padding: 4px 16px;
+  background: #9C27B0;
+  color: white;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  margin-bottom: 16px;
+}
+.report-hero-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+.report-hero-sub {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.report-hero-date {
+  font-size: 0.75rem;
+  color: var(--text-light);
+}
+
+/* Module summary grid */
+.report-module-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.rm-card {
+  border-radius: 12px;
+  padding: 16px;
+  border-top: 3px solid #ddd;
+  background: #FAFAFA;
+}
+.rm-icon { font-size: 1.5rem; margin-bottom: 6px; }
+.rm-module { font-size: 0.7rem; color: var(--text-secondary); margin-bottom: 2px; }
+.rm-type { font-size: 1rem; font-weight: 700; }
+.rm-en { font-size: 0.65rem; color: var(--text-light); margin-bottom: 4px; }
+.rm-stats { font-size: 0.7rem; color: var(--text-secondary); }
+
+/* Radar */
+.report-radar-container {
+  text-align: center;
+  margin: 0 auto;
+}
+.report-radar-container canvas {
+  max-width: 100%;
+}
+.report-radar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 16px;
+}
+.radar-legend-item {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.radar-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.radar-legend-item em {
+  font-style: normal;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Cross-analysis cards */
+.ca-card {
+  padding: 16px;
+  margin-bottom: 12px;
+  background: #FAFAFA;
+  border-radius: 12px;
+  border-left: 3px solid #9C27B0;
+}
+.ca-title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+.ca-insight {
+  font-size: 0.85rem;
+  color: #6B4B7A;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+.ca-detail {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* Portrait */
+.portrait-badge {
+  display: inline-block;
+  padding: 8px 24px;
+  background: linear-gradient(135deg, #9C27B0, #E91E63);
+  color: white;
+  border-radius: 24px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+  letter-spacing: 1px;
+}
+.portrait-summary {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.portrait-paragraph {
+  font-size: 0.85rem;
+  line-height: 1.8;
+  color: #444;
+  margin-bottom: 12px;
+}
+
+/* Report list (strengths & advice) */
+.report-list {
+  list-style: none;
+  padding: 0;
+}
+.report-list-item {
+  padding: 12px 16px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.report-list-item.positive {
+  background: #F0F7F0;
+  border-left: 3px solid #4CAF50;
+}
+.report-list-item.growth {
+  background: #FFF8E1;
+  border-left: 3px solid #FFC107;
+}
+.report-list-item::before {
+  font-weight: 700;
+  margin-right: 8px;
+}
+.report-list-item.positive::before { content: '✓ '; color: #4CAF50; }
+.report-list-item.growth::before { content: '→ '; color: #FF9800; }
+
+/* Report footer */
+.report-footer {
+  text-align: center;
+  padding: 20px;
+}
+.report-footer-text {
+  font-size: 0.72rem;
+  color: var(--text-light);
+  line-height: 1.6;
+}
+.report-footer-date {
+  font-size: 0.7rem;
+  color: var(--text-light);
+  margin-top: 8px;
+}
+
+/* ===== 打印样式 ===== */
+@media print {
+  body { background: white; padding: 0; }
+  .container { max-width: 100%; padding: 0; }
+  .top-bar, .disclaimer, #result-actions, .result-actions, #report-download-btn { display: none !important; }
+  .page { display: none !important; }
+  #page-report { display: block !important; }
+  .report-section { box-shadow: none; break-inside: avoid; page-break-inside: avoid; border: 1px solid #EEE; }
+  .report-hero { background: none !important; }
+  .report-list-item { break-inside: avoid; page-break-inside: avoid; }
+  @page { margin: 1.5cm; }
+}

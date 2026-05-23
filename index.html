@@ -46,8 +46,19 @@
     <div id="result-actions" class="result-actions" style="display:none;">
       <button class="btn btn-primary" id="retry-btn">🔄 重新测试</button>
       <button class="btn btn-outline" id="share-btn">📤 保存分享图</button>
+      <button class="btn btn-outline" id="report-gen-btn" style="display:none;">📊 完整报告</button>
       <button class="btn btn-outline" id="home-btn">🏠 返回首页</button>
     </div>
+  </div>
+
+  <!-- ===== 综合报告页 ===== -->
+  <div id="page-report" class="page">
+    <div class="top-bar">
+      <button class="back-btn" onclick="UI.renderHome();UI.switchPage('page-home')">←</button>
+      <span class="module-name">个人分析报告</span>
+      <button class="btn btn-sm btn-outline" id="report-download-btn" onclick="Report.download()">📥 下载</button>
+    </div>
+    <div id="report-content" class="report-content"></div>
   </div>
 
 </div>
@@ -66,6 +77,7 @@
 <script src="src/js/data-las.js"></script>
 <script src="src/js/data-ll.js"></script>
 <script src="src/js/utils.js"></script>
+<script src="src/js/report.js"></script>
 <script src="src/js/ui.js"></script>
 <script src="src/js/app.js"></script>
 

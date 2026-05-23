@@ -230,14 +230,19 @@ const Utils = {
     labels.forEach(([x,y,t]) => { ctx.fillText(t, x, y); });
   },
 
-  /* ---- 雷达图 (5LL) ---- */
-  drawRadar: function(canvas, scores, labels) {
+  /* ---- 雷达图 ---- */
+  drawRadar: function(canvas, scores, labels, options) {
     const ctx = this.setupHiDPICanvas(canvas, 320, 300);
     const W = 320, H = 300;
     const cx = W/2, cy = H/2 - 10;
     const radius = 95;
-    const n = 5;
+    const n = Object.keys(scores).length;
     const maxScore = Math.max(1, ...Object.values(scores));
+    const opt = options || {};
+    const fillColor = opt.fillColor || 'rgba(232,115,111,0.2)';
+    const strokeColor = opt.strokeColor || '#E8736F';
+    const pointColor = opt.pointColor || '#E8736F';
+    const labelColor = opt.labelColor || '#555';
 
     ctx.clearRect(0, 0, W, H);
 
@@ -266,16 +271,16 @@ const Utils = {
     ctx.beginPath();
     entries.forEach((p, i) => i === 0 ? ctx.moveTo(p.x, p.y) : ctx.lineTo(p.x, p.y));
     ctx.closePath();
-    ctx.fillStyle = 'rgba(232,115,111,0.2)';
+    ctx.fillStyle = fillColor;
     ctx.fill();
-    ctx.strokeStyle = '#E8736F';
+    ctx.strokeStyle = strokeColor;
     ctx.lineWidth = 2;
     ctx.stroke();
 
     // 数据点
     entries.forEach(p => {
       ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
-      ctx.fillStyle = '#E8736F'; ctx.fill();
+      ctx.fillStyle = pointColor; ctx.fill();
     });
 
     // 轴标签
@@ -285,116 +290,252 @@ const Utils = {
       let angle = Math.PI/2 - (Math.PI*2/n)*i;
       let x = cx + (radius + 22) * Math.cos(angle);
       let y = cy - (radius + 22) * Math.sin(angle);
-      ctx.fillStyle = '#555';
+      ctx.fillStyle = labelColor;
       ctx.fillText(lb.cn, x, y+4);
     });
 
-    ctx.fillStyle = '#999';
-    ctx.font = '10px sans-serif';
-    ctx.fillText('得分', cx, H-8);
+    if (!opt.hideScoreLabel) {
+      ctx.fillStyle = '#999';
+      ctx.font = '10px sans-serif';
+      ctx.fillText('得分', cx, H-8);
+    }
   },
 
-  /* ---- 分享图生成 ---- */
-  generateShareCard: function(moduleKey, resultData) {
-    const canvas = document.getElementById('share-canvas');
-    const ctx = this.setupHiDPICanvas(canvas, 400, 560);
-    const W = 400, H = 560;
+  /* ---- 分享图生成（重设计） ---- */
+  _hexToRgba: function(hex, alpha) {
+    const r = parseInt(hex.slice(1,3), 16);
+    const g = parseInt(hex.slice(3,5), 16);
+    const b = parseInt(hex.slice(5,7), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
+  },
 
-    // 背景
-    ctx.fillStyle = '#FFFFFF';
+  _roundRect: function(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.lineTo(x+w-r, y);
+    ctx.quadraticCurveTo(x+w, y, x+w, y+r);
+    ctx.lineTo(x+w, y+h-r);
+    ctx.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+    ctx.lineTo(x+r, y+h);
+    ctx.quadraticCurveTo(x, y+h, x, y+h-r);
+    ctx.lineTo(x, y+r);
+    ctx.quadraticCurveTo(x, y, x+r, y);
+    ctx.closePath();
+  },
+
+  _measureWrappedHeight: function(ctx, text, maxWidth, lineHeight) {
+    let line = '', lines = 1;
+    for (let i = 0; i < text.length; i++) {
+      let testLine = line + text[i];
+      if (ctx.measureText(testLine).width > maxWidth && i > 0) { lines++; line = text[i]; }
+      else { line = testLine; }
+    }
+    return lines * lineHeight;
+  },
+
+  _getShareTypeName: function(moduleKey, data) {
+    if (moduleKey === 'ecr') return ECR.types[data.type]?.cn || '未知';
+    if (moduleKey === 'stls') return data.type?.cn || '未知';
+    if (moduleKey === 'las') return LAS.styles[data.primary]?.cn || '未知';
+    if (moduleKey === 'll') return LL.labels[data.primary]?.cn || '未知';
+    return '未知';
+  },
+
+  _getShareTypeEn: function(moduleKey, data) {
+    if (moduleKey === 'ecr') return ECR.types[data.type]?.en || '';
+    if (moduleKey === 'stls') return data.type?.en || '';
+    if (moduleKey === 'las') return LAS.styles[data.primary]?.en || '';
+    if (moduleKey === 'll') return LL.labels[data.primary]?.en || '';
+    return '';
+  },
+
+  _drawShareCardBackground: function(ctx, W, H, moduleKey) {
+    const colors = { ecr:'#9B72AA', stls:'#FF7F6F', las:'#FF6B9D', ll:'#E8736F' };
+    const color = colors[moduleKey] || '#888';
+    // 渐变背景
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, this._hexToRgba(color, 0.10));
+    grad.addColorStop(0.2, this._hexToRgba(color, 0.03));
+    grad.addColorStop(0.5, '#FFFFFF');
+    grad.addColorStop(1, '#FFFFFF');
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
-
+    // 装饰圆（右上）
+    ctx.globalAlpha = 0.04;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(W + 30, -40, 200, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
     // 顶部色带
-    let colors = { ecr:'#9B72AA', stls:'#FF7F6F', las:'#FF6B9D', ll:'#E8736F' };
-    let color = colors[moduleKey] || '#888';
     ctx.fillStyle = color;
-    ctx.fillRect(0, 0, W, 6);
+    ctx.fillRect(0, 0, W, 8);
+    return color;
+  },
 
-    // 标题
-    ctx.fillStyle = '#2D2D2D';
-    ctx.font = 'bold 18px sans-serif';
+  _drawShareCardHeader: function(ctx, W, moduleKey, resultData, color) {
+    const titles = { ecr:'依恋类型诊断', stls:'爱情三元论', las:'爱情色彩风格', ll:'五种恋爱语言' };
+    // 图标 emoji
+    let icon = '?';
+    if (moduleKey === 'ecr') icon = ECR.types[resultData.type]?.icon || '?';
+    else if (moduleKey === 'stls') icon = resultData.type?.icon || '?';
+    else if (moduleKey === 'las') icon = LAS.styles[resultData.primary]?.icon || '?';
+    else if (moduleKey === 'll') icon = LL.labels[resultData.primary]?.icon || '?';
+    ctx.font = '40px sans-serif';
     ctx.textAlign = 'center';
-    let titles = { ecr:'依恋类型诊断', stls:'爱情三元论', las:'爱情色彩风格', ll:'五种恋爱语言' };
-    ctx.fillText(titles[moduleKey] || '恋爱心理测试', W/2, 44);
-
-    // 结果
-    ctx.font = 'bold 26px sans-serif';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(icon, W / 2, 52);
+    // 中文名
+    ctx.font = 'bold 32px sans-serif';
     ctx.fillStyle = color;
-    let typeNames = {
-      ecr: () => ECR.types[resultData.type]?.cn || '未知',
-      stls: () => STLS.types[resultData.type?.key]?.cn || '未知',
-      las: () => LAS.styles[resultData.primary]?.cn || '未知',
-      ll: () => LL.labels[resultData.primary]?.cn || '未知'
-    };
-    let name = typeNames[moduleKey] ? typeNames[moduleKey]() : '未知';
-    ctx.fillText(name, W/2, 84);
-
-    // 英文
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this._getShareTypeName(moduleKey, resultData), W / 2, 112);
+    // 英文名
     ctx.font = '14px sans-serif';
     ctx.fillStyle = '#999';
-    let typeEns = {
-      ecr: () => ECR.types[resultData.type]?.en || '',
-      stls: () => STLS.types[resultData.type?.key]?.en || '',
-      las: () => LAS.styles[resultData.primary]?.en || '',
-      ll: () => LL.labels[resultData.primary]?.en || ''
-    };
-    let en = typeEns[moduleKey] ? typeEns[moduleKey]() : '';
-    ctx.fillText(en, W/2, 106);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this._getShareTypeEn(moduleKey, resultData), W / 2, 138);
+    // 模块标签
+    ctx.font = '11px sans-serif';
+    ctx.fillStyle = color;
+    ctx.textBaseline = 'middle';
+    ctx.fillText(titles[moduleKey] || '心理测试', W / 2, 164);
+    return 180;
+  },
 
-    // 分隔线
-    ctx.strokeStyle = '#EEE';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(30, 120); ctx.lineTo(W-30, 120); ctx.stroke();
-
-    // 内容区
-    ctx.fillStyle = '#555';
+  _drawScoreBar: function(ctx, label, value, maxValue, barColor, x, y, barWidth) {
+    const trackX = x + 80;
+    const trackWidth = barWidth - 80 - 40;
+    const trackH = 10;
+    // 标签
     ctx.font = '13px sans-serif';
+    ctx.fillStyle = '#555';
     ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x, y);
+    // 轨道背景
+    ctx.fillStyle = '#F0F0F0';
+    this._roundRect(ctx, trackX, y - trackH/2, trackWidth, trackH, 5);
+    ctx.fill();
+    // 填充
+    const fillW = Math.max(0, Math.min(1, Math.min(value, maxValue) / Math.max(1, maxValue))) * trackWidth;
+    ctx.fillStyle = barColor;
+    ctx.globalAlpha = 0.8;
+    this._roundRect(ctx, trackX, y - trackH/2, fillW, trackH, 5);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    // 数值
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillStyle = barColor;
+    ctx.textAlign = 'right';
+    ctx.fillText(value.toFixed(1), trackX + trackWidth + 8, y);
+  },
 
-    let lines = [];
+  _drawShareCardScores: function(ctx, W, startY, moduleKey, resultData, color) {
+    let y = startY;
+    const barW = W - 60;
     if (moduleKey === 'ecr') {
-      lines.push(`焦虑度: ${resultData.anxiety?.toFixed(1) || '?'}`);
-      lines.push(`回避度: ${resultData.avoidance?.toFixed(1) || '?'}`);
+      this._drawScoreBar(ctx, '焦虑度', resultData.anxiety || 0, 7, '#FF9800', 30, y, barW); y += 36;
+      this._drawScoreBar(ctx, '回避度', resultData.avoidance || 0, 7, '#2196F3', 30, y, barW); y += 36;
     } else if (moduleKey === 'stls') {
-      lines.push(`亲密: ${resultData.scores?.intimacy?.toFixed(1) || '?'}`);
-      lines.push(`激情: ${resultData.scores?.passion?.toFixed(1) || '?'}`);
-      lines.push(`承诺: ${resultData.scores?.commitment?.toFixed(1) || '?'}`);
+      const dims = [
+        { label: '亲密', key: 'intimacy', color: '#66BB6A' },
+        { label: '激情', key: 'passion', color: '#FF7043' },
+        { label: '承诺', key: 'commitment', color: '#42A5F5' }
+      ];
+      dims.forEach(d => {
+        this._drawScoreBar(ctx, d.label, resultData.scores?.[d.key] || 0, resultData.maxScore || 5, d.color, 30, y, barW);
+        y += 36;
+      });
     } else if (moduleKey === 'las') {
-      let primary = LAS.styles[resultData.primary];
-      let secondary = LAS.styles[resultData.secondary];
-      lines.push(`主导: ${primary?.cn || '?'}`);
-      lines.push(`次要: ${secondary?.cn || '?'}`);
+      const all = Object.entries(resultData.scores || {}).sort((a, b) => b[1] - a[1]);
+      all.slice(0, 4).forEach(([k, v], i) => {
+        const st = LAS.styles[k];
+        const label = i === 0 ? '★ ' + st.cn : st.cn;
+        this._drawScoreBar(ctx, label, v, 5, st.color, 30, y, barW);
+        y += 32;
+      });
     } else if (moduleKey === 'll') {
-      let sorted = resultData.sorted || [];
-      sorted.forEach(([k,v], i) => {
-        lines.push(`${i+1}. ${LL.labels[k]?.cn || k}: ${v}分`);
+      const sorted = resultData.sorted || [];
+      const maxV = Math.max(1, ...sorted.map(s => s[1]));
+      sorted.forEach(([k, v], i) => {
+        const lb = LL.labels[k];
+        this._drawScoreBar(ctx, lb.cn, v, maxV, lb.color, 30, y, barW);
+        y += 30;
       });
     }
+    return y + 12;
+  },
 
-    let y = 140;
-    lines.forEach(line => {
-      ctx.fillText(line, 30, y);
-      y += 24;
-    });
+  generateShareCard: function(moduleKey, resultData) {
+    const canvas = document.getElementById('share-canvas');
+    const ctx = this.setupHiDPICanvas(canvas, 480, 640);
+    const W = 480, H = 640;
 
-    // 描述
+    // 1. 渐变背景
+    const color = this._drawShareCardBackground(ctx, W, H, moduleKey);
+
+    // 2. 头部（图标 + 中英文名 + 模块标签）
+    let contentY = this._drawShareCardHeader(ctx, W, moduleKey, resultData, color);
+
+    // 3. 分隔线
+    ctx.strokeStyle = this._hexToRgba(color, 0.15);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(40, contentY);
+    ctx.lineTo(W - 40, contentY);
+    ctx.stroke();
+    contentY += 18;
+
+    // 4. 分数条
+    contentY = this._drawShareCardScores(ctx, W, contentY, moduleKey, resultData, color);
+
+    // 5. 分隔线
+    ctx.strokeStyle = this._hexToRgba(color, 0.10);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(40, contentY);
+    ctx.lineTo(W - 40, contentY);
+    ctx.stroke();
+    contentY += 16;
+
+    // 6. 描述
     let desc = '';
     if (moduleKey === 'ecr') desc = ECR.types[resultData.type]?.desc || '';
-    else if (moduleKey === 'stls') desc = resultData.type?.cn ? '' : '';
+    else if (moduleKey === 'stls') desc = resultData.type?.desc || '';
     else if (moduleKey === 'las') desc = LAS.styles[resultData.primary]?.desc || '';
-    else if (moduleKey === 'll') desc = `你的主要爱语是「${LL.labels[resultData.primary]?.cn || ''}」`;
+    else if (moduleKey === 'll') desc = `你的主要爱语是「${LL.labels[resultData.primary]?.cn || ''}」——这是你最能感受到爱的方式。`;
 
     if (desc) {
-      ctx.fillStyle = '#777';
+      const descPad = 12;
+      const descW = W - 80;
+      const descH = this._measureWrappedHeight(ctx, desc, descW, 18) + descPad * 2;
+      // 淡色背景胶囊
+      ctx.fillStyle = this._hexToRgba(color, 0.05);
+      this._roundRect(ctx, 35, contentY - 4, W - 70, descH + 8, 10);
+      ctx.fill();
+      // 文字
+      ctx.fillStyle = '#666';
       ctx.font = '12px sans-serif';
-      this.wrapText(ctx, desc, 30, y+10, W-60, 20);
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      this.wrapText(ctx, desc, 40, contentY + descPad, descW, 18);
+      contentY += descH + 16;
     }
 
-    // 底部
-    ctx.fillStyle = '#CCC';
+    // 7. 底部信息
+    contentY = Math.max(contentY, H - 85);
+    ctx.fillStyle = this._hexToRgba(color, 0.45);
     ctx.font = '11px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('love-psych-test · 恋爱心理测试工具集', W/2, H-24);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('心理学科普 · 了解你的爱情模式', W / 2, contentY);
+    ctx.fillStyle = '#BBB';
+    ctx.font = '10px sans-serif';
+    ctx.fillText(new Date().toLocaleDateString('zh-CN'), W / 2, contentY + 22);
+    ctx.fillStyle = '#CCC';
+    ctx.font = '9px sans-serif';
+    ctx.fillText('love-psych-test · 恋爱心理测试工具集', W / 2, H - 18);
 
     return canvas.toDataURL('image/png');
   },

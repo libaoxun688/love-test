@@ -29,6 +29,10 @@ const App = {
       UI.renderHome();
       UI.switchPage('page-home');
     });
+    // 报告生成按钮（结果页）
+    document.getElementById('report-gen-btn').addEventListener('click', () => {
+      this.openReport();
+    });
   },
 
   /* ---- 开始测试 ---- */
@@ -161,6 +165,10 @@ const App = {
     const names = { ecr:'依恋类型诊断', stls:'爱情三元论', las:'爱情色彩风格', ll:'五种恋爱语言' };
     document.getElementById('result-module-name').textContent = names[module] || '测试结果';
     document.getElementById('result-actions').style.display = 'flex';
+    // 显示/隐藏完整报告按钮
+    const allResults = Utils.loadAllResults();
+    const allDone = ['ecr','stls','las','ll'].every(k => allResults[k] && allResults[k].timestamp);
+    document.getElementById('report-gen-btn').style.display = allDone ? '' : 'none';
     UI.switchPage('page-result');
   },
 
@@ -185,6 +193,9 @@ const App = {
     const names = { ecr:'依恋类型诊断', stls:'爱情三元论', las:'爱情色彩风格', ll:'五种恋爱语言' };
     document.getElementById('result-module-name').textContent = names[moduleKey] || '测试结果';
     document.getElementById('result-actions').style.display = 'flex';
+    // 报告按钮可见性
+    const allDone = ['ecr','stls','las','ll'].every(k => results[k] && results[k].timestamp);
+    document.getElementById('report-gen-btn').style.display = allDone ? '' : 'none';
 
     if (moduleKey === 'ecr') UI.renderECRResult(data);
     else if (moduleKey === 'stls') UI.renderSTLSResult(data);
@@ -197,6 +208,20 @@ const App = {
   /* ---- 显示历史列表 ---- */
   showHistory: function() {
     UI.showHistory();
+  },
+
+  /* ---- 生成个人分析报告 ---- */
+  openReport: function() {
+    const results = Utils.loadAllResults();
+    const modules = ['ecr','stls','las','ll'];
+    const missing = modules.filter(k => !results[k] || !results[k].timestamp);
+    if (missing.length > 0) {
+      const names = { ecr:'依恋类型诊断', stls:'爱情三元论', las:'爱情色彩风格', ll:'五种恋爱语言' };
+      alert('请先完成以下模块：' + missing.map(k => names[k]).join('、'));
+      return;
+    }
+    Report.generate(results);
+    UI.switchPage('page-report');
   }
 };
 
