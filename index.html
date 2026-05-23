@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>恋爱心理测试工具集 · Love Psychology Test</title>
+<link rel="stylesheet" href="src/css/style.css">
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ===== 首页 ===== -->
+  <div id="page-home" class="page active">
+    <div class="site-title">
+      <h1>💗 恋爱心理测试</h1>
+      <div class="subtitle">Love Psychology Test · 4 个科学理论 · 了解你的爱情模式</div>
+    </div>
+    <div id="home-grid" class="module-grid"></div>
+    <div id="history-hints"></div>
+  </div>
+
+  <!-- ===== 测试页 ===== -->
+  <div id="page-test" class="page">
+    <div class="top-bar">
+      <button class="back-btn" id="back-test" onclick="UI.renderHome();UI.switchPage('page-home')">←</button>
+      <span class="module-name" id="test-module-name">测试</span>
+      <span style="margin-left:auto;font-size:0.75rem;color:var(--text-light)" id="test-version-label"></span>
+    </div>
+    <div class="progress-container">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+      </div>
+      <div class="progress-text" id="progress-text">0 / 0</div>
+    </div>
+    <div id="question-container"></div>
+  </div>
+
+  <!-- ===== 结果页 ===== -->
+  <div id="page-result" class="page">
+    <div class="top-bar">
+      <button class="back-btn" onclick="UI.renderHome();UI.switchPage('page-home')">←</button>
+      <span class="module-name" id="result-module-name">测试结果</span>
+    </div>
+    <div id="result-content"></div>
+    <div id="result-actions" class="result-actions" style="display:none;">
+      <button class="btn btn-primary" id="retry-btn">🔄 重新测试</button>
+      <button class="btn btn-outline" id="share-btn">📤 保存分享图</button>
+      <button class="btn btn-outline" id="home-btn">🏠 返回首页</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ===== 底部免责声明 ===== -->
+<div class="disclaimer">
+  <p>本测试基于 ECR（亲密关系经历量表）、斯滕伯格爱情三角理论（STLS/TLS-15）、Hendrick &amp; Hendrick 爱情态度量表（LAS）、查普曼五种恋爱语言（5LL）等心理学理论研发，结果仅供娱乐与自我探索参考，<strong>不作为临床心理诊断依据</strong>。</p>
+</div>
+
+<!-- 隐藏的 Canvas（用于分享图） -->
+<canvas id="share-canvas"></canvas>
+
+<!-- ===== Scripts ===== -->
+<script src="src/js/data-ecr.js"></script>
+<script src="src/js/data-stls.js"></script>
+<script src="src/js/data-las.js"></script>
+<script src="src/js/data-ll.js"></script>
+<script src="src/js/utils.js"></script>
+<script src="src/js/ui.js"></script>
+<script src="src/js/app.js"></script>
+
+</body>
+</html>
