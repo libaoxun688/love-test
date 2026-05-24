@@ -596,27 +596,24 @@ const Report = {
     Utils._drawCardBackground(ctx, W, H, color);
 
     // 2. Hero
-    ctx.font = '36px "PingFang SC","Microsoft YaHei",sans-serif';
+    // 昵称（放大居中）
+    ctx.font = 'bold 26px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#333';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🎭', W/2, 38);
-
-    // 昵称
-    ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
-    ctx.fillStyle = Utils._hexToRgba(color, 0.65);
-    ctx.fillText('— ' + nickname + ' —', W/2, 60);
+    ctx.fillText('—— ' + nickname + ' ——', W/2, 44);
 
     ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
-    ctx.fillText('综合个人画像', W/2, 75);
+    ctx.fillText('综合个人画像', W/2, 72);
 
-    ctx.font = 'bold 32px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
-    ctx.fillText(data.portrait.label, W/2, 118);
+    ctx.fillText(data.portrait.label, W/2, 108);
 
     ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#999';
-    ctx.fillText('❝ ' + data.portrait.summary + ' ❞', W/2, 160);
+    ctx.fillText('❝ ' + data.portrait.summary + ' ❞', W/2, 146);
 
     // 3. 标签色块 row
     var norm = data.modules;
@@ -643,7 +640,7 @@ const Report = {
       });
       totalTagW += (tagItems.length - 1) * tagGap;
       var tagX = (W - totalTagW) / 2;
-      var tagY = 192;
+      var tagY = 178;
 
       tagItems.forEach(function(t, i) {
         var tw = twList[i];
@@ -681,7 +678,7 @@ const Report = {
     ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     var dBodyH = Utils._measureWrappedHeight(ctx, descText, capW, 16);
     var dCapH = Math.max(60, dBodyH + 36);
-    var dY = 228;
+    var dY = 214;
 
     Utils._drawCapsule(ctx, 55, dY, W - 110, dCapH, 12, 'rgba(255,255,255,0.92)');
     ctx.fillStyle = color;
