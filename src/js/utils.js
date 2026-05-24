@@ -940,3 +940,4 @@ const Utils = {
     a.click();
   }
 };
+window.Utils = Utils;

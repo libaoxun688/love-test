@@ -50,3 +50,4 @@ const Profile = {
     });
   }
 };
+window.Profile = Profile;

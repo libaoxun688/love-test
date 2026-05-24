@@ -668,3 +668,4 @@ const CoupleMatch = {
     };
   }
 };
+window.CoupleMatch = CoupleMatch;

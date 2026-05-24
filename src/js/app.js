@@ -282,6 +282,8 @@ const App = {
   }
 };
 
+window.App = App;
+
 // DOM 加载完成后初始化
 document.addEventListener('DOMContentLoaded', () => {
   App.init();
