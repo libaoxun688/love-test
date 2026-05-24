@@ -13,6 +13,16 @@ const UI = {
     const grid = document.getElementById('home-grid');
     grid.innerHTML = '';
 
+    // 昵称展示
+    const nickname = Profile.getNickname();
+    let nickBanner = document.querySelector('.home-nickname');
+    if (!nickBanner) {
+      nickBanner = document.createElement('div');
+      nickBanner.className = 'home-nickname';
+      document.querySelector('.site-title').after(nickBanner);
+    }
+    nickBanner.innerHTML = '<span class="home-nickname-text">💗 你好，' + nickname + '</span> <span class="home-nickname-edit" onclick="Profile.renderPage();UI.switchPage(\'page-nickname\')">✏️ 编辑</span>';
+
     const modules = [
       { key:'ecr',  icon:'🧠', title:'依恋类型诊断', en:'Attachment Style', desc:'测测你在亲密关系中的情感模式', color: 'var(--ecr-color)', versions:[
         {key:'light', label:'精简 (12题)'}, {key:'standard', label:'标准 (24题)'}, {key:'full', label:'完整 (36题)'}
@@ -62,8 +72,43 @@ const UI = {
       });
     });
 
+    // 情侣匹配入口
+    const _pairResults = Utils.loadAllResults();
+    const _allDone = ['ecr','stls','las','ll'].every(function(k) { return _pairResults[k] && _pairResults[k].timestamp && _pairResults[k]._answers; });
+    let _matchCard = document.querySelector('.couple-card');
+    if (!_matchCard) {
+      _matchCard = document.createElement('div');
+      _matchCard.className = 'couple-card';
+      grid.after(_matchCard);
+    }
+    if (_allDone) {
+      _matchCard.className = 'couple-card';
+      _matchCard.innerHTML =
+        '<div class="couple-card-header">' +
+        '<span class="cc-icon">💕</span>' +
+        '<span class="cc-title">情侣匹配度分析</span>' +
+        '</div>' +
+        '<div class="couple-card-desc">已完成全部 4 个测试，准备好和TA匹配了吗？</div>' +
+        '<button class="couple-card-btn" onclick="UI.switchPage(\'page-couple-code\');CoupleMatch.renderCodePage();">进入匹配 💕</button>';
+    } else {
+      _matchCard.className = 'couple-card';
+      _matchCard.innerHTML =
+        '<div class="cc-header">💕 情侣匹配度分析</div>' +
+        '<div class="cc-body">' +
+        '<div class="cc-progress">完成全部 4 个测试 → 生成匹配码</div>' +
+        '<div class="cc-progress-list">' +
+        ['ecr','stls','las','ll'].map(function(m) {
+          var _done = _pairResults[m] && _pairResults[m].timestamp;
+          var _names = { ecr:'依恋类型诊断', stls:'爱情三元论', las:'爱情色彩风格', ll:'五种恋爱语言' };
+          return '<span style="color:' + (_done ? '#4CAF50' : 'var(--text-light)') + '">' + (_done ? '✅' : '☐') + '</span> ' + _names[m] + '<br>';
+        }).join('') +
+        '</div>' +
+        '<button class="btn btn-primary" style="margin-top:8px;" onclick="UI.renderHome();UI.switchPage(\'page-home\')">继续完成 →</button>' +
+        '</div>';
+    }
+
     // 展示历史结果提示
-    const results = Utils.loadAllResults();
+    const results = _pairResults;
     const historyEl = document.getElementById('history-hints');
     historyEl.innerHTML = '';
     const historyKeys = Object.keys(results).filter(k => results[k].timestamp);
@@ -243,6 +288,7 @@ const UI = {
       const canvas = document.getElementById('chart-canvas');
       if (canvas) Utils.drawQuadrant(canvas, result.anxiety, result.avoidance);
     }, 50);
+    this.renderAllTypes('ecr', result);
   },
 
   /* ---- 三元论结果页 ---- */
@@ -291,6 +337,7 @@ const UI = {
       const canvas = document.getElementById('chart-canvas');
       if (canvas) Utils.drawTriangle(canvas, result.scores.intimacy, result.scores.passion, result.scores.commitment, result.maxScore || 5);
     }, 50);
+    this.renderAllTypes('stls', result);
   },
 
   /* ---- LAS 结果页 ---- */
@@ -353,6 +400,7 @@ const UI = {
         </div>
       </div>
     `;
+    this.renderAllTypes('las', result);
   },
 
   /* ---- 5LL 结果页 ---- */
@@ -400,6 +448,7 @@ const UI = {
       const canvas = document.getElementById('chart-canvas');
       if (canvas) Utils.drawRadar(canvas, result.scores, LL.labels);
     }, 50);
+    this.renderAllTypes('ll', result);
   },
 
   getLLAdvice: function(key) {
@@ -448,5 +497,139 @@ const UI = {
     this.switchPage('page-result');
     document.getElementById('result-module-name').textContent = '历史记录';
     document.getElementById('result-actions').style.display = 'none';
+  },
+
+  /* ---- 模块进度引导 ---- */
+  renderModuleGuide: function() {
+    const results = Utils.loadAllResults();
+    const modules = ['ecr','stls','las','ll'];
+    const names = { ecr:'依恋类型诊断', stls:'爱情三元论', las:'爱情色彩风格', ll:'五种恋爱语言' };
+    const completed = modules.filter(function(m) { return results[m] && results[m].timestamp; });
+    const remaining = modules.filter(function(m) { return !results[m] || !results[m].timestamp; });
+    const nextModule = remaining.length > 0 ? remaining[0] : null;
+    const sec = document.getElementById('result-content');
+
+    let html = '<div class="module-guide">';
+    html += '<div class="mg-header">已完成 ' + completed.length + ' / 4 个模块</div>';
+    html += '<div class="mg-list">';
+    modules.forEach(function(m) {
+      const done = results[m] && results[m].timestamp;
+      html += '<div class="mg-item' + (done ? ' mg-done' : '') + '">';
+      html += '<span class="mg-check">' + (done ? '✅' : '☐') + '</span>';
+      html += '<span class="mg-name">' + names[m] + '</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    if (nextModule) {
+      var versionOpts = {
+        ecr: [{k:'light', l:'精简12题'},{k:'standard', l:'标准24题'},{k:'full', l:'完整36题'}],
+        stls: [{k:'short', l:'简化15题'},{k:'full', l:'完整45题'}],
+        las: [{k:'short', l:'简化24题'},{k:'full', l:'完整42题'}],
+        ll: [{k:'short', l:'简化15对'},{k:'full', l:'完整30对'}]
+      };
+      var opts = versionOpts[nextModule] || [{k:'light', l:'开始'}];
+      html += '<div style="text-align:center;margin-bottom:10px;">';
+      html += '<div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:8px;">📐 选择题量 · ' + names[nextModule] + '</div>';
+      html += '<div class="version-btns" style="justify-content:center;">';
+      for (var vi = 0; vi < opts.length; vi++) {
+        html += '<button class="version-btn' + (vi === 0 ? ' selected' : '') + '" data-version="' + opts[vi].k + '" onclick="this.parentElement.querySelectorAll(\'.version-btn\').forEach(function(b){b.classList.remove(\'selected\')});this.classList.add(\'selected\')">' + opts[vi].l + '</button>';
+      }
+      html += '</div></div>';
+      html += '<button class="btn btn-primary mg-btn" onclick="var sel=document.querySelector(\'.module-guide .version-btn.selected\');App.startTest(\'' + nextModule + '\',sel?sel.dataset.version:\'' + opts[0].k + '\')">开始测试 →</button>';
+    } else {
+      html += '<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">';
+      html += '<button class="btn btn-primary mg-btn" onclick="UI.switchPage(\'page-couple-code\');CoupleMatch.renderCodePage();">💕 去匹配</button>';
+      html += '<button class="btn btn-outline mg-btn" onclick="App.openReport()">📊 个人报告</button>';
+      html += '</div>';
+    }
+    html += '</div>';
+
+    sec.insertAdjacentHTML('beforeend', html);
+  },
+
+  /* ---- 所有类型浏览 ---- */
+  renderAllTypes: function(moduleKey, result) {
+    var data, currentKey, label, isCurrentValid;
+
+    if (moduleKey === 'ecr') {
+      data = ECR.types;
+      currentKey = result.type;
+      label = '依恋类型';
+    } else if (moduleKey === 'stls') {
+      data = STLS.types;
+      currentKey = result.type && result.type.key;
+      label = '爱情类型';
+    } else if (moduleKey === 'las') {
+      data = LAS.styles;
+      currentKey = result.primary;
+      label = '爱情色彩';
+    } else if (moduleKey === 'll') {
+      data = {};
+      var llKeys = Object.keys(LL.labels);
+      for (var li = 0; li < llKeys.length; li++) {
+        var k = llKeys[li];
+        data[k] = {
+          cn: LL.labels[k].cn,
+          en: LL.labels[k].en,
+          color: LL.labels[k].color,
+          icon: LL.labels[k].icon,
+          desc: LL.advice[k] || ''
+        };
+      }
+      currentKey = result.primary;
+      label = '爱语类型';
+    }
+
+    if (!data) return;
+    var keys = Object.keys(data);
+    if (keys.length === 0) return;
+    isCurrentValid = data[currentKey] !== undefined;
+
+    // Sort: current type first
+    var sortedKeys = keys.slice().sort(function(a, b) {
+      if (isCurrentValid && a === currentKey) return -1;
+      if (isCurrentValid && b === currentKey) return 1;
+      return 0;
+    });
+
+    var cardsHtml = '';
+    for (var si = 0; si < sortedKeys.length; si++) {
+      var key = sortedKeys[si];
+      var type = data[key];
+      if (!type) continue;
+      var isCurrent = isCurrentValid && key === currentKey;
+      var color = type.color || '#9B72AA';
+      var bg = isCurrent ? (type.bgColor || color + '18') : '';
+      var desc = type.desc || '';
+      var safeCn = (type.cn || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      var safeEn = (type.en || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      var safeDesc = (desc || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      var icon = type.icon || '';
+
+      cardsHtml += '<div class="type-card' + (isCurrent ? ' current' : '') + '" onclick="this.classList.toggle(\'expanded\')"';
+      if (isCurrent) {
+        cardsHtml += ' style="border-color:' + color + ';background:' + bg + '"';
+      }
+      cardsHtml += '>';
+      if (isCurrent) {
+        cardsHtml += '<div class="tc-badge">✓ 你的' + label + '</div>';
+      }
+      cardsHtml += '<div class="tc-icon">' + icon + '</div>' +
+        '<div class="tc-name">' + safeCn + '</div>' +
+        '<div class="tc-en">' + safeEn + '</div>' +
+        '<div class="tc-desc">' + safeDesc + '</div>' +
+        '</div>';
+    }
+
+    var html = '<div class="result-section all-types-section">' +
+      '<details>' +
+      '<summary class="all-types-summary">📖 查看所有' + label + '（共' + keys.length + '种）</summary>' +
+      '<div class="all-types-grid">' + cardsHtml + '</div>' +
+      '</details>' +
+      '</div>';
+
+    var container = document.getElementById('result-content');
+    if (container) container.insertAdjacentHTML('beforeend', html);
   }
 };

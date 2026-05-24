@@ -93,14 +93,14 @@ const Utils = {
 
       // 类型名
       ctx.fillStyle = q[7];
-      ctx.font = 'bold 14px sans-serif';
+      ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(q[5], q[0] + q[2]/2, q[1] + q[3]/2 - 8);
 
       // 英文副标签
       ctx.fillStyle = q[7] + '80';
-      ctx.font = '10px sans-serif';
+      ctx.font = '10px "PingFang SC","Microsoft YaHei",sans-serif';
       ctx.fillText(q[6], q[0] + q[2]/2, q[1] + q[3]/2 + 12);
     });
 
@@ -114,7 +114,7 @@ const Utils = {
 
     // ---- 轴刻度 ----
     ctx.fillStyle = '#999';
-    ctx.font = '10px sans-serif';
+    ctx.font = '10px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     for (let v = 1; v <= 7; v++) {
@@ -130,7 +130,7 @@ const Utils = {
 
     // ---- 轴标签 ----
     ctx.fillStyle = '#666';
-    ctx.font = '12px sans-serif';
+    ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText('回避度 →', W-pad-20, cy + 18);
@@ -166,7 +166,7 @@ const Utils = {
 
     // 坐标值指示器（右上角）
     ctx.fillStyle = '#E91E63';
-    ctx.font = 'bold 12px sans-serif';
+    ctx.font = 'bold 12px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'top';
     ctx.fillText(`● 焦虑度 ${anxiety.toFixed(1)}`, W-8, 10);
@@ -219,7 +219,7 @@ const Utils = {
     ctx.stroke();
 
     // 顶点标签
-    ctx.font = '12px sans-serif';
+    ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#555';
     let labels = [
@@ -284,7 +284,7 @@ const Utils = {
     });
 
     // 轴标签
-    ctx.font = '11px sans-serif';
+    ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     Object.entries(labels).forEach(([k, lb], i) => {
       let angle = Math.PI/2 - (Math.PI*2/n)*i;
@@ -296,7 +296,7 @@ const Utils = {
 
     if (!opt.hideScoreLabel) {
       ctx.fillStyle = '#999';
-      ctx.font = '10px sans-serif';
+      ctx.font = '10px "PingFang SC","Microsoft YaHei",sans-serif';
       ctx.fillText('得分', cx, H-8);
     }
   },
@@ -349,66 +349,164 @@ const Utils = {
   },
 
   _drawCardBackground: function(ctx, W, H, color) {
-    // 强渐变背景 35%→15%→5%→白
+    // 白色基底
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, W, H);
+
+    // 线性渐变（主视觉：顶部主题色→底部白）
     const grad = ctx.createLinearGradient(0, 0, 0, H);
     grad.addColorStop(0, this._hexToRgba(color, 0.35));
-    grad.addColorStop(0.25, this._hexToRgba(color, 0.15));
-    grad.addColorStop(0.5, this._hexToRgba(color, 0.05));
-    grad.addColorStop(0.7, '#FFFFFF');
+    grad.addColorStop(0.2, this._hexToRgba(color, 0.15));
+    grad.addColorStop(0.45, this._hexToRgba(color, 0.05));
+    grad.addColorStop(0.65, '#FFFFFF');
     grad.addColorStop(1, '#FFFFFF');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
-    // 4 个装饰性透明圆
-    ctx.globalAlpha = 0.06;
+
+    // 径向光晕（从顶部中心向外发散）
+    const radGrad = ctx.createRadialGradient(W/2, -40, 10, W/2, -40, H*0.55);
+    radGrad.addColorStop(0, this._hexToRgba(color, 0.12));
+    radGrad.addColorStop(0.4, this._hexToRgba(color, 0.03));
+    radGrad.addColorStop(1, this._hexToRgba(color, 0));
+    ctx.fillStyle = radGrad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 装饰性透明圆 × 8，错落分布
+    ctx.globalAlpha = 0.05;
     ctx.fillStyle = color;
-    ctx.beginPath(); ctx.arc(-40, -30, 160, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(W+50, 100, 120, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(-20, H-80, 140, 0, Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(W+30, H-40, 110, 0, Math.PI*2); ctx.fill();
+    const circles = [
+      [-50, -40, 180], [W+40, 60, 140], [-30, H*0.35, 100],
+      [W*0.7, H*0.25, 80], [W-20, H*0.6, 120], [-60, H-50, 150],
+      [W*0.2, H-20, 90], [W*0.45, H*0.15, 60]
+    ];
+    circles.forEach(([cx, cy, r]) => {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    });
     ctx.globalAlpha = 1;
-    // 顶部色带
+
+    // 顶部双色带：主色 + 高光线
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, W, 6);
+    ctx.fillStyle = this._hexToRgba('#FFFFFF', 0.15);
+    ctx.fillRect(0, 6, W, 1);
   },
 
   _drawCapsule: function(ctx, x, y, w, h, r, fillStyle, shadowColor) {
     ctx.save();
-    ctx.shadowColor = shadowColor || 'rgba(0,0,0,0.05)';
-    ctx.shadowBlur = 8;
-    ctx.shadowOffsetY = 2;
+    // 主阴影
+    ctx.shadowColor = shadowColor || 'rgba(0,0,0,0.06)';
+    ctx.shadowBlur = 14;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 3;
     ctx.fillStyle = fillStyle || 'rgba(255,255,255,0.88)';
     this._roundRect(ctx, x, y, w, h, r);
     ctx.fill();
+    // 次阴影（更短更柔，增加层次感）
+    ctx.shadowColor = 'rgba(0,0,0,0.03)';
+    ctx.shadowBlur = 6;
+    ctx.shadowOffsetY = 1;
+    this._roundRect(ctx, x, y, w, h, r);
+    ctx.fill();
+    // 顶部高光线（1px 白线）
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + r * 0.5, y + 1);
+    ctx.lineTo(x + w - r * 0.5, y + 1);
+    ctx.stroke();
     ctx.restore();
   },
 
   _drawScorePill: function(ctx, x, y, w, h, label, value, color) {
-    ctx.fillStyle = this._hexToRgba(color, 0.12);
+    // 药丸背景
+    ctx.fillStyle = this._hexToRgba(color, 0.10);
     this._roundRect(ctx, x, y, w, h, h/2);
     ctx.fill();
-    ctx.font = 'bold 12px sans-serif';
+    // 迷你渐变进度条
+    const barX = x + 52;
+    const barW = w - 52 - 40;
+    const barH = 4;
+    const barY = y + h/2 - barH/2;
+    if (barW > 20) {
+      const fillW = Math.max(4, Math.min(barW, (value / 5) * barW));
+      const barGrad = ctx.createLinearGradient(barX, barY, barX + fillW, barY);
+      barGrad.addColorStop(0, this._hexToRgba(color, 0.5));
+      barGrad.addColorStop(1, color);
+      // 轨道
+      ctx.fillStyle = this._hexToRgba(color, 0.12);
+      this._roundRect(ctx, barX, barY, barW, barH, barH/2);
+      ctx.fill();
+      // 填充
+      ctx.fillStyle = barGrad;
+      ctx.save();
+      ctx.shadowColor = this._hexToRgba(color, 0.2);
+      ctx.shadowBlur = 4;
+      this._roundRect(ctx, barX, barY, fillW, barH, barH/2);
+      ctx.fill();
+      ctx.restore();
+    }
+    // 标签
+    ctx.font = 'bold 12px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText(label, x + 10, y + h/2);
-    ctx.font = 'bold 12px sans-serif';
-    ctx.fillStyle = '#555';
+    ctx.fillText(label, Math.round(x + 10), Math.round(y + h/2));
+    // 数值
+    ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#444';
     ctx.textAlign = 'right';
-    ctx.fillText(value.toFixed(1), x + w - 10, y + h/2);
+    ctx.fillText(value.toFixed(1), Math.round(x + w - 10), Math.round(y + h/2));
   },
 
   _drawFooter: function(ctx, W, H, source, color) {
     ctx.fillStyle = this._hexToRgba(color, 0.5);
-    ctx.font = '10px sans-serif';
+    ctx.font = '10px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(source, W/2, H - 62);
     ctx.fillStyle = '#BBB';
-    ctx.font = '9px sans-serif';
+    ctx.font = '9px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillText(new Date().toLocaleDateString('zh-CN'), W/2, H - 42);
     ctx.fillStyle = '#CCC';
-    ctx.font = '8px sans-serif';
-    ctx.fillText('love-psych-test · 心理学科普', W/2, H - 22);
+    ctx.font = '8px "PingFang SC","Microsoft YaHei",sans-serif';
+    // 品牌水印
+    ctx.fillStyle = this._hexToRgba(color, 0.5);
+    ctx.font = '8px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('✦ love-psych-test · 心理学科普 ✦', W/2, H - 22);
+    // 极简装饰点
+    const dotY = H - 32;
+    ctx.fillStyle = this._hexToRgba(color, 0.2);
+    [W/2 - 130, W/2 - 110, W/2 + 110, W/2 + 130].forEach(dx => {
+      ctx.beginPath(); ctx.arc(dx, dotY, 1.5, 0, Math.PI*2); ctx.fill();
+    });
+  },
+
+  /* ---- 共享的建议区绘制（带装饰左竖条 + 截断） ---- */
+  _drawAdviceSection: function(ctx, W, advY, title, text, color) {
+    if (!text) return advY;
+    const textWidth = W - 156;
+    ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+    const bodyH = this._measureWrappedHeight(ctx, text, textWidth, 16);
+    const capsuleH = bodyH + 32;
+    this._drawCapsule(ctx, 55, advY, W - 110, capsuleH, 12, 'rgba(255,255,255,0.92)');
+    // 左侧装饰竖条 (3px 主题色)
+    ctx.fillStyle = color;
+    this._roundRect(ctx, 65, advY + 10, 3, capsuleH - 20, 1.5);
+    ctx.fill();
+    // 标题
+    ctx.font = 'bold 11px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(title, 76, advY + 8);
+    // 正文（不截断，完全显示）
+    ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#555';
+    this.wrapText(ctx, text, 76, advY + 26, textWidth, 16);
   },
 
   _renderECRCard: function(ctx, W, data) {
@@ -416,18 +514,18 @@ const Utils = {
     const type = ECR.types[data.type];
     if (!type) return;
     // 头部
-    ctx.font = '38px sans-serif';
+    ctx.font = '38px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(type.icon, W/2, 48);
-    ctx.font = 'bold 30px sans-serif';
+    ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.fillText(type.cn, W/2, 92);
-    ctx.font = '13px sans-serif';
+    ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#999';
     ctx.fillText(type.en, W/2, 118);
     // 模块标签
-    ctx.font = '11px sans-serif';
+    ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
     this._roundRect(ctx, W/2 - 52, 134, 104, 22, 11);
@@ -444,22 +542,7 @@ const Utils = {
     this._drawCapsule(ctx, 55, chartY, W - 110, capsuleH, 14, 'rgba(255,255,255,0.88)');
     ctx.drawImage(offC, 90, chartY + 10, 300, 300);
     // 建议区
-    const advice = type.advice || '';
-    if (advice) {
-      const advY = chartY + capsuleH + 14;
-      ctx.font = '11px sans-serif';
-      const advW = W - 140;
-      const advH = this._measureWrappedHeight(ctx, advice, advW, 16) + 20;
-      this._drawCapsule(ctx, 55, advY, W - 110, advH, 12, 'rgba(255,255,255,0.92)');
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillStyle = color;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('💡 成长建议', 70, advY + 8);
-      ctx.font = '11px sans-serif';
-      ctx.fillStyle = '#555';
-      this.wrapText(ctx, advice, 70, advY + 26, advW, 16);
-    }
+    this._drawAdviceSection(ctx, W, chartY + capsuleH + 14, '💡 成长建议', type.advice, color);
   },
 
   _renderSTLSCard: function(ctx, W, data) {
@@ -467,18 +550,18 @@ const Utils = {
     const type = data.type || {};
     const scores = data.scores || {};
     // 头部
-    ctx.font = '38px sans-serif';
+    ctx.font = '38px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(type.icon || '❤️', W/2, 52);
-    ctx.font = 'bold 30px sans-serif';
+    ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.fillText(type.cn || '未知', W/2, 100);
-    ctx.font = '13px sans-serif';
+    ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#999';
     ctx.fillText(type.en || '', W/2, 128);
     // 模块标签
-    ctx.font = '11px sans-serif';
+    ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
     this._roundRect(ctx, W/2 - 46, 148, 92, 22, 11);
@@ -506,22 +589,7 @@ const Utils = {
       this._drawScorePill(ctx, 65 + i * (pillW + 12), pillY, pillW, 28, d.label, scores[d.key] || 0, d.clr);
     });
     // 建议区
-    const advice = type.advice || '';
-    if (advice) {
-      const advY = pillY + 40;
-      ctx.font = '11px sans-serif';
-      const advW = W - 140;
-      const advH = this._measureWrappedHeight(ctx, advice, advW, 16) + 20;
-      this._drawCapsule(ctx, 55, advY, W - 110, advH, 12, 'rgba(255,255,255,0.92)');
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillStyle = color;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('💡 成长建议', 70, advY + 8);
-      ctx.font = '11px sans-serif';
-      ctx.fillStyle = '#555';
-      this.wrapText(ctx, advice, 70, advY + 26, advW, 16);
-    }
+    this._drawAdviceSection(ctx, W, pillY + 40, '💡 成长建议', type.advice, color);
   },
 
   _renderLASCard: function(ctx, W, data) {
@@ -530,18 +598,18 @@ const Utils = {
     const primary = LAS.styles[primaryKey];
     if (!primary) return;
     // 头部
-    ctx.font = '38px sans-serif';
+    ctx.font = '38px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(primary.icon, W/2, 52);
-    ctx.font = 'bold 30px sans-serif';
+    ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.fillText(primary.cn, W/2, 100);
-    ctx.font = '13px sans-serif';
+    ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#999';
     ctx.fillText(primary.en, W/2, 128);
     // 模块标签
-    ctx.font = '11px sans-serif';
+    ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
     this._roundRect(ctx, W/2 - 52, 148, 104, 22, 11);
@@ -574,22 +642,7 @@ const Utils = {
       this._drawScorePill(ctx, 65 + i * (pillW + 12), pillY, pillW, 28, (i === 0 ? '★ ' : '') + st.cn, v, st.color || color);
     });
     // 建议区
-    const advice = primary.advice || '';
-    if (advice) {
-      const advY = pillY + 40;
-      ctx.font = '11px sans-serif';
-      const advW = W - 140;
-      const advH = this._measureWrappedHeight(ctx, advice, advW, 16) + 20;
-      this._drawCapsule(ctx, 55, advY, W - 110, advH, 12, 'rgba(255,255,255,0.92)');
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillStyle = color;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('💡 成长建议', 70, advY + 8);
-      ctx.font = '11px sans-serif';
-      ctx.fillStyle = '#555';
-      this.wrapText(ctx, advice, 70, advY + 26, advW, 16);
-    }
+    this._drawAdviceSection(ctx, W, pillY + 40, '💡 成长建议', primary.advice, color);
   },
 
   _renderLLCard: function(ctx, W, data) {
@@ -599,18 +652,18 @@ const Utils = {
     const primary = LL.labels[primaryKey];
     if (!primary) return;
     // 头部
-    ctx.font = '38px sans-serif';
+    ctx.font = '38px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(primary.icon, W/2, 52);
-    ctx.font = 'bold 30px sans-serif';
+    ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.fillText(primary.cn, W/2, 100);
-    ctx.font = '13px sans-serif';
+    ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#999';
     ctx.fillText(primary.en, W/2, 128);
     // 模块标签
-    ctx.font = '11px sans-serif';
+    ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
     this._roundRect(ctx, W/2 - 52, 148, 104, 22, 11);
@@ -643,25 +696,10 @@ const Utils = {
       this._drawScorePill(ctx, 65 + pillW + 12, pillY, pillW, 28, '⏰ ' + sec.cn, data.scores?.[secondaryKey] || 0, sec.color);
     }
     // 建议区
-    const advice = LL.advice[primaryKey] || '';
-    if (advice) {
-      const advY = pillY + 40;
-      ctx.font = '11px sans-serif';
-      const advW = W - 140;
-      const advH = this._measureWrappedHeight(ctx, advice, advW, 16) + 20;
-      this._drawCapsule(ctx, 55, advY, W - 110, advH, 12, 'rgba(255,255,255,0.92)');
-      ctx.font = 'bold 11px sans-serif';
-      ctx.fillStyle = color;
-      ctx.textAlign = 'left';
-      ctx.textBaseline = 'top';
-      ctx.fillText('💡 爱语建议', 70, advY + 8);
-      ctx.font = '11px sans-serif';
-      ctx.fillStyle = '#555';
-      this.wrapText(ctx, advice, 70, advY + 26, advW, 16);
-    }
+    this._drawAdviceSection(ctx, W, pillY + 40, '💡 爱语建议', LL.advice[primaryKey], color);
     // 双语者标记
     if (data.isBilingual && secondaryKey) {
-      ctx.font = '11px sans-serif';
+      ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
       ctx.fillStyle = color;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
@@ -674,9 +712,15 @@ const Utils = {
   },
 
   generateShareCard: function(moduleKey, resultData) {
+    // 固定 2x 输出: 960×1280 像素, 480×640 逻辑坐标
     const canvas = document.getElementById('share-canvas');
-    const ctx = this.setupHiDPICanvas(canvas, 480, 640);
-    const W = 480, H = 640;
+    canvas.width = 960;
+    canvas.height = 1440;
+    canvas.style.width = '480px';
+    canvas.style.height = '720px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
+    const W = 480, H = 720;
     const color = this._getModuleColor(moduleKey);
     // 1. 背景
     this._drawCardBackground(ctx, W, H, color);
@@ -691,8 +735,7 @@ const Utils = {
   },
 
   wrapText: function(ctx, text, x, y, maxWidth, lineHeight) {
-    let words = text.split('');
-    let line = '';
+    let line = ''; x = Math.round(x); y = Math.round(y);
     for (let i = 0; i < text.length; i++) {
       let testLine = line + text[i];
       if (ctx.measureText(testLine).width > maxWidth && i > 0) {
@@ -704,6 +747,176 @@ const Utils = {
       }
     }
     ctx.fillText(line, x, y);
+  },
+
+  /* ---- 匹配分享图（证书风） ---- */
+  generateMatchCard: function(matchData, myNick, partnerNick) {
+    const { total, tier, modules, percentile, advice } = matchData;
+    const canvas = document.getElementById('share-canvas');
+    canvas.width = 960;
+    canvas.height = 1440;
+    canvas.style.width = '480px';
+    canvas.style.height = '720px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
+    const W = 480, H = 720;
+    const color = tier.color;
+
+    this._drawCardBackground(ctx, W, H, color);
+
+    /* ===== Zone 1: Hero ===== */
+    // 等级图标
+    ctx.font = '44px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(tier.icon, W/2, 40);
+
+    // 称号大字
+    ctx.font = 'bold 28px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = color;
+    ctx.fillText(tier.name, W/2, 72);
+
+    // 一句概括
+    ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#999';
+    ctx.fillText('"' + tier.quote + '"', W/2, 98);
+
+    // 昵称
+    ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#555';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(myNick + '  ❤️  ' + partnerNick, W/2, 122);
+
+    // 大分数胶囊
+    const scY = 148, scH = 60, scW = 200;
+    this._drawCapsule(ctx, (W-scW)/2, scY, scW, scH, 16, 'rgba(255,255,255,0.9)');
+    ctx.font = 'bold 36px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(total + '%', W/2, scY + scH/2);
+
+    // 百分位
+    ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#AAA';
+    ctx.textAlign = 'center';
+    ctx.fillText('超过了 ' + percentile + '% 的情侣', W/2, scY + scH + 12);
+
+    /* ===== Zone 2: 双方类型对比 ===== */
+    var typeY = scY + scH + 40;
+
+    // 分割线 + 标签
+    ctx.font = '10px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#CCC';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    var labelText = '双方类型对比';
+    // 装饰线（左半）
+    ctx.fillStyle = '#E8E8E8';
+    ctx.fillRect(60, typeY - 1, (W-120)/2 - ctx.measureText(labelText).width/2 - 16, 1);
+    // 标签文字
+    ctx.fillStyle = '#BBB';
+    ctx.fillText(labelText, W/2, typeY);
+    // 装饰线（右半）
+    ctx.fillStyle = '#E8E8E8';
+    ctx.fillRect(W/2 + ctx.measureText(labelText).width/2 + 16, typeY - 1, (W-120)/2 - ctx.measureText(labelText).width/2 - 16, 1);
+    typeY += 24;
+
+    // 类型行配置：模块 key, icon, 左列 getter, 右列 getter
+    var typeRows = [
+      { icon: '🫂', key: 'ecr', getMy: function(m) { return m.ecr.my || ''; }, getPartner: function(m) { return m.ecr.partner || ''; } },
+      { icon: '🎨', key: 'las', getMy: function(m) { return m.las.my || ''; }, getPartner: function(m) { return m.las.partner || ''; } },
+      { icon: '💬', key: 'll', getMy: function(m) { return m.ll.my || ''; }, getPartner: function(m) { return m.ll.partner || ''; } },
+    ];
+    var moduleColors = { ecr: '#9B72AA', las: '#FF6B9D', ll: '#E8736F' };
+
+    for (var ri = 0; ri < typeRows.length; ri++) {
+      var row = typeRows[ri];
+      var myType = row.getMy(modules);
+      var partnerType = row.getPartner(modules);
+      var mc = moduleColors[row.key] || '#888';
+
+      // 图标 + 我的类型（左对齐）
+      ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = mc;
+      ctx.fillText(row.icon + '  ' + myType, 60, typeY);
+
+      // vs (中间)
+      ctx.font = '10px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.fillStyle = '#CCC';
+      ctx.textAlign = 'center';
+      ctx.fillText('vs', W/2, typeY);
+
+      // 对方类型（右对齐）
+      ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.fillStyle = mc;
+      ctx.textAlign = 'right';
+      ctx.fillText(partnerType + '  ' + row.icon, W - 60, typeY);
+
+      typeY += 22;
+    }
+
+    /* ===== Zone 3: 关键洞察 ===== */
+    var insightText = '';
+    if (advice && advice.length > 0) {
+      var raw = advice[0].text || '';
+      // 取第一个完整句（\n 前或 。前），最多 120 字
+      var cut = raw.indexOf('\n');
+      var firstPart = cut > 0 ? raw.substring(0, cut) : raw;
+      insightText = firstPart.length > 120 ? firstPart.substring(0, 120) + '…' : firstPart;
+    }
+
+    if (insightText) {
+      var advPad = 12;          // padding inside capsule
+      var advTitleH = 16;       // title height
+      ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+      var advBodyH = this._measureWrappedHeight(ctx, insightText, W - 156, 16);
+      var advCapsuleH = advPad + advTitleH + 4 + advBodyH + advPad;
+      var advY = typeY + 8;
+
+      this._drawCapsule(ctx, 55, advY, W - 110, advCapsuleH, 12, 'rgba(255,255,255,0.92)');
+
+      // 左侧装饰竖条
+      ctx.fillStyle = color;
+      this._roundRect(ctx, 65, advY + 10, 3, advCapsuleH - 20, 1.5);
+      ctx.fill();
+
+      // 标题
+      ctx.font = 'bold 11px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.fillStyle = color;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText('📖 关键洞察', 76, advY + advPad);
+
+      // 正文
+      ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.fillStyle = '#555';
+      this.wrapText(ctx, insightText, 76, advY + advPad + advTitleH + 4, W - 156, 16);
+    }
+
+    // 底部
+    this._drawFooter(ctx, W, H, '基于 ECR / 斯滕伯格 / LAS / 5LL 科学理论', color);
+
+    const dataUrl = canvas.toDataURL('image/png');
+    this.downloadImage(dataUrl, 'love-match-' + Date.now() + '.png');
+    return dataUrl;
+  },
+
+  /* ---- Toast 消息 ---- */
+  showToast: function(message) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    requestAnimationFrame(function() { toast.classList.add('show'); });
+    setTimeout(function() {
+      toast.classList.remove('show');
+      setTimeout(function() { toast.remove(); }, 300);
+    }, 2000);
   },
 
   /* ---- 下载图片 ---- */

@@ -13,6 +13,18 @@ const App = {
 
   /* ---- 初始化 ---- */
   init: function() {
+    // 昵称守卫 —— 无昵称先去设置
+    if (!Profile.hasNickname()) {
+      Profile.renderPage();
+      UI.switchPage('page-nickname');
+    }
+
+    // 预加载系统字体
+    if (document.fonts) {
+      document.fonts.load('30px "PingFang SC","Microsoft YaHei"').catch(() => {});
+      document.fonts.load('13px "PingFang SC","Microsoft YaHei"').catch(() => {});
+      document.fonts.load('11px "PingFang SC","Microsoft YaHei"').catch(() => {});
+    }
     UI.renderHome();
     // 重新测试按钮
     document.getElementById('retry-btn').addEventListener('click', () => {
@@ -140,23 +152,31 @@ const App = {
         else type = 'secure';
         result = { ...scores, type };
       }
+      result._answers = [...answers];
+      result._version = version;
       Utils.saveResult('ecr', result);
       UI.renderECRResult(result);
 
     } else if (module === 'stls') {
       result = STLS.compute(answers, version);
       result.maxScore = version === 'short' ? 5 : 9;
+      result._answers = [...answers];
+      result._version = version;
       Utils.saveResult('stls', result);
       UI.renderSTLSResult(result);
 
     } else if (module === 'las') {
       const isShort = version === 'short';
       result = LAS.compute(answers, isShort);
+      result._answers = [...answers];
+      result._version = version;
       Utils.saveResult('las', result);
       UI.renderLASResult(result);
 
     } else if (module === 'll') {
       result = LL.compute(answers);
+      result._answers = [...answers];
+      result._version = version;
       Utils.saveResult('ll', result);
       UI.renderLLResult(result);
     }
@@ -169,6 +189,7 @@ const App = {
     const allResults = Utils.loadAllResults();
     const allDone = ['ecr','stls','las','ll'].every(k => allResults[k] && allResults[k].timestamp);
     document.getElementById('report-gen-btn').style.display = allDone ? '' : 'none';
+    UI.renderModuleGuide();
     UI.switchPage('page-result');
   },
 
@@ -222,6 +243,42 @@ const App = {
     }
     Report.generate(results);
     UI.switchPage('page-report');
+  },
+
+  /* ---- 情侣匹配 ---- */
+  startCoupleMatch: function(code) {
+    if (!code || !code.trim()) {
+      Utils.showToast('请输入对方的匹配码');
+      return;
+    }
+    code = code.trim();
+    const partnerData = CoupleCodec.decode(code);
+    if (!partnerData) {
+      Utils.showToast('匹配码无效，请检查后重试');
+      return;
+    }
+
+    const myResults = Utils.loadAllResults();
+
+    // 检测自己的数据是否包含原始答案
+    const mods = ['ecr','stls','las','ll'];
+    const missing = mods.filter(function(m) { return !myResults[m] || !myResults[m]._answers; });
+    if (missing.length > 0) {
+      Utils.showToast('请先重新完成测试（数据版本过旧）');
+      return;
+    }
+
+    // 检测对方数据完整性
+    const partnerMissing = mods.filter(function(m) { return !partnerData[m]; });
+    if (partnerMissing.length > 0) {
+      Utils.showToast('对方的匹配码数据不完整');
+      return;
+    }
+
+    if (!App._partnerNickname) App._partnerNickname = '对方';
+    const matchResult = CoupleMatch.compute(myResults, partnerData);
+    CoupleMatch.renderMatchResult(matchResult);
+    UI.switchPage('page-couple-result');
   }
 };
 

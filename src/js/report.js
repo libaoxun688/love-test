@@ -581,120 +581,199 @@ const Report = {
   },
 
   generateCoverImage: function(data) {
-    const canvas = document.createElement('canvas');
-    const ctx = Utils.setupHiDPICanvas(canvas, 800, 600);
-    const W = 800, H = 600;
+    const canvas = document.getElementById('share-canvas');
+    canvas.width = 960;
+    canvas.height = 1440;
+    canvas.style.width = '480px';
+    canvas.style.height = '720px';
+    const ctx = canvas.getContext('2d');
+    ctx.scale(2, 2);
+    const W = 480, H = 720;
+    const color = '#E8736F'; // 暖色浪漫·珊瑚粉
 
-    // 背景
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, '#FAFAFA');
-    grad.addColorStop(1, '#F0ECF5');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
+    // 1. 背景
+    Utils._drawCardBackground(ctx, W, H, color);
 
-    // 顶部色带
-    ctx.fillStyle = '#9C27B0';
-    ctx.fillRect(0, 0, W, 6);
-
-    // 标题
-    ctx.fillStyle = '#2D2D2D';
-    ctx.font = 'bold 32px sans-serif';
+    // 2. Hero
+    ctx.font = '36px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('你的爱情心理画像', W/2, 80);
+    ctx.textBaseline = 'middle';
+    ctx.fillText('🎭', W/2, 38);
 
-    ctx.font = '18px sans-serif';
-    ctx.fillStyle = '#888';
-    ctx.fillText('个人分析报告', W/2, 116);
+    ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = color;
+    ctx.fillText('综合个人画像', W/2, 75);
 
-    // 分隔线
-    ctx.strokeStyle = '#E0E0E0';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(100, 140); ctx.lineTo(W-100, 140); ctx.stroke();
+    ctx.font = 'bold 32px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = color;
+    ctx.fillText(data.portrait.label, W/2, 114);
 
-    // 原型标签
-    ctx.font = 'bold 28px sans-serif';
-    ctx.fillStyle = '#9C27B0';
-    ctx.fillText(data.portrait.label, W/2, 200);
+    ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = '#999';
+    ctx.fillText('❝ ' + data.portrait.summary + ' ❞', W/2, 156);
 
-    // 一句话
-    ctx.font = '15px sans-serif';
-    ctx.fillStyle = '#555';
-    ctx.fillText(data.portrait.summary, W/2, 240);
-
-    // 迷你雷达图
-    const miniCanvas = document.createElement('canvas');
-    const radarCtx = Utils.setupHiDPICanvas(miniCanvas, 240, 240);
-    const scores = {};
-    const labels = {};
-    data.radar.forEach(d => {
-      scores[d.key] = d.value;
-      labels[d.key] = { cn: d.label };
-    });
-    // Quick manual radar drawing for the cover
-    const cx = 120, cy = 120, r = 80, n = 6;
-    const maxV = Math.max(1, ...Object.values(scores));
-    // grid
-    for (let g = 1; g <= 3; g++) {
-      radarCtx.beginPath();
-      for (let i = 0; i < n; i++) {
-        let a = Math.PI/2 - (Math.PI*2/n)*i;
-        let x = cx + r * (g/3) * Math.cos(a);
-        let y = cy - r * (g/3) * Math.sin(a);
-        i === 0 ? radarCtx.moveTo(x, y) : radarCtx.lineTo(x, y);
-      }
-      radarCtx.closePath();
-      radarCtx.strokeStyle = '#DDD';
-      radarCtx.lineWidth = 0.5;
-      radarCtx.stroke();
+    // 3. 标签色块 row
+    var norm = data.modules;
+    var tagItems = [];
+    if (norm.ecr && norm.ecr.typeCn) tagItems.push({ text: norm.ecr.typeCn, color: '#9B72AA' });
+    if (norm.las && norm.las.primaryCn) tagItems.push({ text: norm.las.primaryCn, color: '#FF6B9D' });
+    if (norm.ll && norm.ll.primaryCn) tagItems.push({ text: norm.ll.primaryCn, color: '#E8736F' });
+    if (norm.stls && norm.stls.type) {
+      var stlsName = norm.stls.type.cn || norm.stls.type.en || '';
+      if (stlsName) tagItems.push({ text: stlsName, color: '#FF7F6F' });
     }
-    // data
-    radarCtx.beginPath();
-    Object.entries(scores).forEach(([k,v], i) => {
-      let a = Math.PI/2 - (Math.PI*2/n)*i;
-      let val = Math.min(v / maxV, 1);
-      let x = cx + r * val * Math.cos(a);
-      let y = cy - r * val * Math.sin(a);
-      i === 0 ? radarCtx.moveTo(x, y) : radarCtx.lineTo(x, y);
-    });
-    radarCtx.closePath();
-    radarCtx.fillStyle = 'rgba(156,39,176,0.15)';
-    radarCtx.fill();
-    radarCtx.strokeStyle = '#9C27B0';
-    radarCtx.lineWidth = 1.5;
-    radarCtx.stroke();
 
-    // 迷你标签
-    radarCtx.font = '8px sans-serif';
-    radarCtx.textAlign = 'center';
-    Object.entries(labels).forEach(([k, lb], i) => {
-      let a = Math.PI/2 - (Math.PI*2/n)*i;
-      let x = cx + (r + 16) * Math.cos(a);
-      let y = cy - (r + 16) * Math.sin(a);
-      radarCtx.fillStyle = '#999';
-      radarCtx.fillText(lb.cn, x, y+3);
-    });
+    if (tagItems.length > 0) {
+      ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.textBaseline = 'middle';
+      var twList = [];
+      var totalTagW = 0;
+      var tagPad = 14;
+      var tagGap = 8;
+      tagItems.forEach(function(t) {
+        var tw = ctx.measureText(t.text).width + tagPad * 2;
+        twList.push(tw);
+        totalTagW += tw;
+      });
+      totalTagW += (tagItems.length - 1) * tagGap;
+      var tagX = (W - totalTagW) / 2;
+      var tagY = 188;
 
-    // 将迷你雷达绘制到主 canvas
-    ctx.drawImage(miniCanvas, (W - 240) / 2, 270);
+      tagItems.forEach(function(t, i) {
+        var tw = twList[i];
+        var tx = Math.round(tagX);
+        var ty = tagY - 12;
+        // pill bg
+        ctx.fillStyle = Utils._hexToRgba(t.color, 0.14);
+        Utils._roundRect(ctx, tx, ty, tw, 24, 12);
+        ctx.fill();
+        // border
+        ctx.strokeStyle = Utils._hexToRgba(t.color, 0.25);
+        ctx.lineWidth = 1;
+        Utils._roundRect(ctx, tx, ty, tw, 24, 12);
+        ctx.stroke();
+        // text
+        ctx.fillStyle = t.color;
+        ctx.textAlign = 'center';
+        ctx.fillText(t.text, tx + tw / 2, tagY);
+        tagX += tw + tagGap;
+      });
+    }
 
-    // 模块概要
-    ctx.textAlign = 'center';
-    ctx.font = '14px sans-serif';
+    // Shared text width
+    var capW = W - 156;
+
+    // 4. 画像解读 capsule
+    var descText = data.portrait.desc[0] || '';
+    // shorten to first ~120 chars at sentence boundary
+    if (descText.length > 120) {
+      var cut = descText.indexOf('。', 80);
+      if (cut > 80 && cut <= 130) descText = descText.substring(0, cut + 1);
+      else descText = descText.substring(0, 120) + '…';
+    }
+
+    ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+    var dBodyH = Utils._measureWrappedHeight(ctx, descText, capW, 16);
+    var dCapH = Math.max(60, dBodyH + 36);
+    var dY = 228;
+
+    Utils._drawCapsule(ctx, 55, dY, W - 110, dCapH, 12, 'rgba(255,255,255,0.92)');
+    ctx.fillStyle = color;
+    Utils._roundRect(ctx, 65, dY + 10, 3, dCapH - 20, 1.5);
+    ctx.fill();
+    ctx.font = 'bold 11px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = color;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText('💡 画像解读', 76, dY + 8);
+    ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#555';
-    const m = data.modules;
-    const summaries = [
-      `🧠 依恋：${m.ecr.typeCn}     ${m.stls.type.icon} 三元论：${m.stls.type.cn}`,
-      `🎨 风格：${m.las.primaryCn}     💬 爱语：${m.ll.primaryCn}`
-    ];
-    let sy = 550;
-    summaries.forEach(line => { ctx.fillText(line, W/2, sy); sy += 24; });
+    Utils.wrapText(ctx, descText, 76, dY + 28, capW, 16);
 
-    // 底部
-    ctx.fillStyle = '#CCC';
-    ctx.font = '11px sans-serif';
-    ctx.fillText(`生成于 ${data.meta.date}  ·  love-psych-test`, W/2, H-16);
+    // 5. 关键洞察 capsule
+    var insText = '';
+    var insTitle = '';
+    if (data.crossAnalysis && data.crossAnalysis.length > 0) {
+      insTitle = '🔍 关键洞察';
+      var rule = data.crossAnalysis[0];
+      insText = rule.title;
+      if (rule.insight && insText.length + rule.insight.length < 120) {
+        insText = insText + '。' + rule.insight;
+      }
+    } else if (data.strengths && data.strengths.length > 0) {
+      insTitle = '✨ 你的优势';
+      insText = data.strengths[0];
+    }
+
+    if (insText) {
+      ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+      var iBodyH = Utils._measureWrappedHeight(ctx, insText, capW, 16);
+      var iCapH = Math.max(56, iBodyH + 36);
+      var iY = dY + dCapH + 22;
+
+      Utils._drawCapsule(ctx, 55, iY, W - 110, iCapH, 12, 'rgba(255,255,255,0.92)');
+      ctx.fillStyle = Utils._hexToRgba(color, 0.7);
+      Utils._roundRect(ctx, 65, iY + 10, 3, iCapH - 20, 1.5);
+      ctx.fill();
+      ctx.font = 'bold 11px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.fillStyle = color;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(insTitle, 76, iY + 8);
+      ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+      ctx.fillStyle = '#555';
+      Utils.wrapText(ctx, insText, 76, iY + 28, capW, 16);
+
+      // 6. 成长建议 capsule（提取含动作词的建议句，跳过纯描述）
+      var tipText = '';
+      if (data.advice && data.advice.length > 0) {
+        var raw = data.advice[0];
+        var parts = raw.split(/[。！!]/);
+        var actionWords = ['试着', '尝试', '可以', '练习', '学会', '告诉', '留意', '注意', '学习', '偶尔', '确保'];
+        for (var pi = 0; pi < parts.length; pi++) {
+          var s = parts[pi].trim();
+          if (s.length < 8 || s.length > 80) continue;
+          for (var pj = 0; pj < actionWords.length; pj++) {
+            if (s.indexOf(actionWords[pj]) !== -1) {
+              tipText = s + '。';
+              break;
+            }
+          }
+          if (tipText) break;
+        }
+        // 兜底：取倒数第二句
+        if (!tipText) {
+          var fb = parts[parts.length - 2];
+          if (fb && fb.trim().length > 10) tipText = fb.trim() + '。';
+        }
+      }
+
+      if (tipText) {
+        ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+        var tBodyH = Utils._measureWrappedHeight(ctx, tipText, capW, 16);
+        var tCapH = Math.max(56, tBodyH + 36);
+        var tY = iY + iCapH + 22;
+
+        Utils._drawCapsule(ctx, 55, tY, W - 110, tCapH, 12, 'rgba(255,255,255,0.92)');
+        ctx.fillStyle = Utils._hexToRgba(color, 0.5);
+        Utils._roundRect(ctx, 65, tY + 10, 3, tCapH - 20, 1.5);
+        ctx.fill();
+        ctx.font = 'bold 11px "PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.fillStyle = color;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText('💫 成长建议', 76, tY + 8);
+        ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
+        ctx.fillStyle = '#555';
+        Utils.wrapText(ctx, tipText, 76, tY + 28, capW, 16);
+      }
+    }
+
+    // 7. Footer
+    Utils._drawFooter(ctx, W, H, '基于 ECR / 斯滕伯格 / LAS / 5LL 科学理论', color);
 
     // 下载
-    Utils.downloadImage(canvas.toDataURL('image/png'), 'love-report-cover.png');
+    var dataUrl = canvas.toDataURL('image/png');
+    Utils.downloadImage(dataUrl, 'love-report-' + Date.now() + '.png');
   }
 };
