@@ -509,35 +509,40 @@ const Utils = {
     this.wrapText(ctx, text, 76, advY + 26, textWidth, 16);
   },
 
-  _renderECRCard: function(ctx, W, data) {
-    const color = '#9B72AA';
+  _renderECRCard: function(ctx, W, data, nickname, color) {
     const type = ECR.types[data.type];
     if (!type) return;
+    // 昵称
+    ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = this._hexToRgba(color, 0.7);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('— ' + nickname + ' —', W/2, 48);
     // 头部
     ctx.font = '38px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(type.icon, W/2, 48);
+    ctx.fillText(type.icon, W/2, 72);
     ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
-    ctx.fillText(type.cn, W/2, 92);
+    ctx.fillText(type.cn, W/2, 108);
     ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#999';
-    ctx.fillText(type.en, W/2, 118);
+    ctx.fillText(type.en, W/2, 130);
     // 模块标签
     ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
-    this._roundRect(ctx, W/2 - 52, 134, 104, 22, 11);
+    this._roundRect(ctx, W/2 - 52, 142, 104, 22, 11);
     ctx.fillStyle = this._hexToRgba(color, 0.1);
     ctx.fill();
     ctx.fillStyle = color;
     ctx.textAlign = 'center';
-    ctx.fillText('依恋类型诊断', W/2, 145);
+    ctx.fillText('依恋类型诊断', W/2, 153);
     // 四象限图 (offscreen) — 300×300 fits in capsule
     const offC = document.createElement('canvas');
     this.drawQuadrant(offC, data.anxiety || 0, data.avoidance || 0);
-    const chartY = 172;
+    const chartY = 180;
     const capsuleH = 320;
     this._drawCapsule(ctx, 55, chartY, W - 110, capsuleH, 14, 'rgba(255,255,255,0.88)');
     ctx.drawImage(offC, 90, chartY + 10, 300, 300);
@@ -545,21 +550,26 @@ const Utils = {
     this._drawAdviceSection(ctx, W, chartY + capsuleH + 14, '💡 成长建议', type.advice, color);
   },
 
-  _renderSTLSCard: function(ctx, W, data) {
-    const color = '#FF7F6F';
+  _renderSTLSCard: function(ctx, W, data, nickname, color) {
     const type = data.type || {};
     const scores = data.scores || {};
+    // 昵称
+    ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = this._hexToRgba(color, 0.7);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('— ' + nickname + ' —', W/2, 48);
     // 头部
     ctx.font = '38px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(type.icon || '❤️', W/2, 52);
+    ctx.fillText(type.icon || '❤️', W/2, 72);
     ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
-    ctx.fillText(type.cn || '未知', W/2, 100);
+    ctx.fillText(type.cn || '未知', W/2, 108);
     ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#999';
-    ctx.fillText(type.en || '', W/2, 128);
+    ctx.fillText(type.en || '', W/2, 130);
     // 模块标签
     ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
@@ -592,22 +602,27 @@ const Utils = {
     this._drawAdviceSection(ctx, W, pillY + 40, '💡 成长建议', type.advice, color);
   },
 
-  _renderLASCard: function(ctx, W, data) {
-    const color = '#FF6B9D';
+  _renderLASCard: function(ctx, W, data, nickname, color) {
     const primaryKey = data.primary;
     const primary = LAS.styles[primaryKey];
     if (!primary) return;
+    // 昵称
+    ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = this._hexToRgba(color, 0.7);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('— ' + nickname + ' —', W/2, 48);
     // 头部
     ctx.font = '38px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(primary.icon, W/2, 52);
+    ctx.fillText(primary.icon, W/2, 72);
     ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
-    ctx.fillText(primary.cn, W/2, 100);
+    ctx.fillText(primary.cn, W/2, 108);
     ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#999';
-    ctx.fillText(primary.en, W/2, 128);
+    ctx.fillText(primary.en, W/2, 130);
     // 模块标签
     ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
@@ -645,23 +660,28 @@ const Utils = {
     this._drawAdviceSection(ctx, W, pillY + 40, '💡 成长建议', primary.advice, color);
   },
 
-  _renderLLCard: function(ctx, W, data) {
-    const color = '#E8736F';
+  _renderLLCard: function(ctx, W, data, nickname, color) {
     const primaryKey = data.primary;
     const secondaryKey = data.secondary;
     const primary = LL.labels[primaryKey];
     if (!primary) return;
+    // 昵称
+    ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = this._hexToRgba(color, 0.7);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('— ' + nickname + ' —', W/2, 48);
     // 头部
     ctx.font = '38px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(primary.icon, W/2, 52);
+    ctx.fillText(primary.icon, W/2, 72);
     ctx.font = 'bold 30px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
-    ctx.fillText(primary.cn, W/2, 100);
+    ctx.fillText(primary.cn, W/2, 108);
     ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#999';
-    ctx.fillText(primary.en, W/2, 128);
+    ctx.fillText(primary.en, W/2, 130);
     // 模块标签
     ctx.font = '11px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
@@ -711,8 +731,7 @@ const Utils = {
     }
   },
 
-  generateShareCard: function(moduleKey, resultData) {
-    // 固定 2x 输出: 960×1280 像素, 480×640 逻辑坐标
+  generateShareCard: function(moduleKey, resultData, nickname) {
     const canvas = document.getElementById('share-canvas');
     canvas.width = 960;
     canvas.height = 1440;
@@ -722,13 +741,14 @@ const Utils = {
     ctx.scale(2, 2);
     const W = 480, H = 720;
     const color = this._getModuleColor(moduleKey);
+    nickname = nickname || '我';
     // 1. 背景
     this._drawCardBackground(ctx, W, H, color);
     // 2. 模块内容
-    if (moduleKey === 'ecr') this._renderECRCard(ctx, W, resultData);
-    else if (moduleKey === 'stls') this._renderSTLSCard(ctx, W, resultData);
-    else if (moduleKey === 'las') this._renderLASCard(ctx, W, resultData);
-    else if (moduleKey === 'll') this._renderLLCard(ctx, W, resultData);
+    if (moduleKey === 'ecr') this._renderECRCard(ctx, W, resultData, nickname, color);
+    else if (moduleKey === 'stls') this._renderSTLSCard(ctx, W, resultData, nickname, color);
+    else if (moduleKey === 'las') this._renderLASCard(ctx, W, resultData, nickname, color);
+    else if (moduleKey === 'll') this._renderLLCard(ctx, W, resultData, nickname, color);
     // 3. 底部
     this._drawFooter(ctx, W, H, this._getSourceText(moduleKey), color);
     return canvas.toDataURL('image/png');
@@ -781,11 +801,24 @@ const Utils = {
     ctx.fillStyle = '#999';
     ctx.fillText('"' + tier.quote + '"', W/2, 98);
 
-    // 昵称
-    ctx.font = 'bold 14px "PingFang SC","Microsoft YaHei",sans-serif';
-    ctx.fillStyle = '#555';
+    // 昵称 — 增强
+    const now = new Date();
+    const dateStr = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    ctx.font = 'bold 16px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = color;
     ctx.textBaseline = 'middle';
-    ctx.fillText(myNick + '  ❤️  ' + partnerNick, W/2, 122);
+    ctx.fillText(myNick + '  ❤️  ' + partnerNick, W/2, 118);
+    // 装饰线
+    ctx.strokeStyle = this._hexToRgba(color, 0.25);
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(W/2 - 30, 140);
+    ctx.lineTo(W/2 + 30, 140);
+    ctx.stroke();
+    // 日期
+    ctx.font = '10px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = this._hexToRgba(color, 0.4);
+    ctx.fillText(dateStr, W/2, 154);
 
     // 大分数胶囊
     const scY = 148, scH = 60, scW = 200;

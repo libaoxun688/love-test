@@ -590,6 +590,7 @@ const Report = {
     ctx.scale(2, 2);
     const W = 480, H = 720;
     const color = '#E8736F'; // 暖色浪漫·珊瑚粉
+    const nickname = Profile.getNickname() || '我';
 
     // 1. 背景
     Utils._drawCardBackground(ctx, W, H, color);
@@ -600,17 +601,22 @@ const Report = {
     ctx.textBaseline = 'middle';
     ctx.fillText('🎭', W/2, 38);
 
+    // 昵称
+    ctx.font = 'bold 13px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillStyle = Utils._hexToRgba(color, 0.65);
+    ctx.fillText('— ' + nickname + ' —', W/2, 60);
+
     ctx.font = '12px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
     ctx.fillText('综合个人画像', W/2, 75);
 
     ctx.font = 'bold 32px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = color;
-    ctx.fillText(data.portrait.label, W/2, 114);
+    ctx.fillText(data.portrait.label, W/2, 118);
 
     ctx.font = '13px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillStyle = '#999';
-    ctx.fillText('❝ ' + data.portrait.summary + ' ❞', W/2, 156);
+    ctx.fillText('❝ ' + data.portrait.summary + ' ❞', W/2, 160);
 
     // 3. 标签色块 row
     var norm = data.modules;
@@ -637,7 +643,7 @@ const Report = {
       });
       totalTagW += (tagItems.length - 1) * tagGap;
       var tagX = (W - totalTagW) / 2;
-      var tagY = 188;
+      var tagY = 192;
 
       tagItems.forEach(function(t, i) {
         var tw = twList[i];

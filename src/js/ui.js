@@ -89,7 +89,12 @@ const UI = {
         '<span class="cc-title">情侣匹配度分析</span>' +
         '</div>' +
         '<div class="couple-card-desc">已完成全部 4 个测试，准备好和TA匹配了吗？</div>' +
-        '<button class="couple-card-btn" onclick="UI.switchPage(\'page-couple-code\');CoupleMatch.renderCodePage();">进入匹配 💕</button>';
+        '<button class="couple-card-btn">进入匹配 💕</button>';
+      // 点击卡片任意位置进入匹配
+      _matchCard.onclick = function() {
+        UI.switchPage('page-couple-code');
+        CoupleMatch.renderCodePage();
+      };
     } else {
       _matchCard.className = 'couple-card';
       _matchCard.innerHTML =
@@ -607,7 +612,7 @@ const UI = {
       var safeDesc = (desc || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       var icon = type.icon || '';
 
-      cardsHtml += '<div class="type-card' + (isCurrent ? ' current' : '') + '" onclick="this.classList.toggle(\'expanded\')"';
+      cardsHtml += '<div class="type-card' + (isCurrent ? ' current' : '') + '"';
       if (isCurrent) {
         cardsHtml += ' style="border-color:' + color + ';background:' + bg + '"';
       }

@@ -200,7 +200,7 @@ const App = {
     const data = results[module];
     if (!data) return;
 
-    const dataUrl = Utils.generateShareCard(module, data);
+    const dataUrl = Utils.generateShareCard(module, data, Profile.getNickname());
     Utils.downloadImage(dataUrl, `love-test-${module}-${Date.now()}.png`);
   },
 

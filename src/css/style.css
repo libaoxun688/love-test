@@ -1308,13 +1308,6 @@ details[open] .all-types-summary {
   font-size: 0.68rem;
   color: var(--text-secondary);
   line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.type-card.expanded .tc-desc {
-  -webkit-line-clamp: unset;
 }
 .type-card.current {
   border-color: var(--text);
