@@ -74,21 +74,20 @@ const UI = {
 
     // 情侣匹配入口
     const _pairResults = Utils.loadAllResults();
-    const _allDone = ['ecr','stls','las','ll'].every(function(k) { return _pairResults[k] && _pairResults[k].timestamp && _pairResults[k]._answers; });
+    const _allModulesDone = ['ecr','stls','las','ll'].every(function(k) { return _pairResults[k] && _pairResults[k].timestamp; });
     let _matchCard = document.querySelector('.couple-card');
-    // 移除旧卡片（避免事件重复绑定）
     if (_matchCard) _matchCard.remove();
     _matchCard = document.createElement('div');
     _matchCard.className = 'couple-card';
     grid.after(_matchCard);
-    if (_allDone) {
-      _matchCard.className = 'couple-card';
-      _matchCard.innerHTML = '';
-      // 程序化创建 DOM，避免内联 onclick 在手机端无法访问 const 变量的缺陷
-      const _header = document.createElement('div');
-      _header.className = 'couple-card-header';
-      _header.innerHTML = '<span class="cc-icon">💕</span><span class="cc-title">情侣匹配度分析</span>';
-      _matchCard.appendChild(_header);
+
+    // 统一卡片结构：头部 + 进度/描述 + 按钮
+    const _cardHeader = document.createElement('div');
+    _cardHeader.className = 'couple-card-header';
+    _cardHeader.innerHTML = '<span class="cc-icon">💕</span><span class="cc-title">情侣匹配度分析</span>';
+    _matchCard.appendChild(_cardHeader);
+
+    if (_allModulesDone) {
       const _desc = document.createElement('div');
       _desc.className = 'couple-card-desc';
       _desc.textContent = '已完成全部 4 个测试，准备好和TA匹配了吗？';
@@ -102,24 +101,29 @@ const UI = {
         CoupleMatch.renderCodePage();
       });
       _matchCard.appendChild(_btn);
-      // 点击卡片空白区域也进入匹配
       _matchCard.addEventListener('click', function() {
         UI.switchPage('page-couple-code');
         CoupleMatch.renderCodePage();
       });
     } else {
-      _matchCard.className = 'couple-card';
-      _matchCard.innerHTML =
-        '<div class="cc-header">💕 情侣匹配度分析</div>' +
-        '<div class="cc-body">' +
-        '<div class="cc-progress">完成全部 4 个测试 → 生成匹配码</div>' +
-        '<div class="cc-progress-list">' +
-        ['ecr','stls','las','ll'].map(function(m) {
-          var _done = _pairResults[m] && _pairResults[m].timestamp;
-          var _names = { ecr:'依恋类型诊断', stls:'爱情三元论', las:'爱情色彩风格', ll:'五种恋爱语言' };
-          return '<span style="color:' + (_done ? '#4CAF50' : 'var(--text-light)') + '">' + (_done ? '✅' : '☐') + '</span> ' + _names[m] + '<br>';
-        }).join('') +
-        '</div>';
+      const _body = document.createElement('div');
+      _body.className = 'cc-body';
+      const _progress = document.createElement('div');
+      _progress.className = 'cc-progress';
+      _progress.textContent = '完成全部 4 个测试 → 生成匹配码';
+      _body.appendChild(_progress);
+      const _list = document.createElement('div');
+      _list.className = 'cc-progress-list';
+      ['ecr','stls','las','ll'].forEach(function(m) {
+        var _done = _pairResults[m] && _pairResults[m].timestamp;
+        var _names = { ecr:'依恋类型诊断', stls:'爱情三元论', las:'爱情色彩风格', ll:'五种恋爱语言' };
+        var _item = document.createElement('div');
+        _item.style.cssText = 'color:' + (_done ? '#4CAF50' : '#999') + ';line-height:1.8;';
+        _item.textContent = (_done ? '✅ ' : '☐ ') + _names[m];
+        _list.appendChild(_item);
+      });
+      _body.appendChild(_list);
+      _matchCard.appendChild(_body);
       const _continueBtn = document.createElement('button');
       _continueBtn.className = 'btn btn-primary';
       _continueBtn.style.marginTop = '8px';
@@ -128,7 +132,7 @@ const UI = {
         UI.renderHome();
         UI.switchPage('page-home');
       });
-      _matchCard.querySelector('.cc-body').appendChild(_continueBtn);
+      _body.appendChild(_continueBtn);
     }
 
     // 展示历史结果提示
